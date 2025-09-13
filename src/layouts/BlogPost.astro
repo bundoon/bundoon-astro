@@ -1,7 +1,6 @@
 ---
-import { CollectionEntry } from 'astro:content';
-const { content, frontmatter } = Astro.props as {
-  content: any;
+import type { CollectionEntry } from 'astro:content';
+const { frontmatter } = Astro.props as {
   frontmatter: CollectionEntry<'posts'>['data'];
 };
 ---
@@ -12,23 +11,34 @@ const { content, frontmatter } = Astro.props as {
     <title>{frontmatter.title}</title>
     <meta name="description" content={frontmatter.description || ''} />
     <link rel="stylesheet" href="/css/custom.css" />
+    <style>
+      /* Nice defaults for post content */
+      main{max-width:860px;margin:2rem auto;padding:0 1rem;font-family:system-ui;line-height:1.6}
+      article img{max-width:100%;height:auto}
+      /* Center any paragraph-only images */
+      article p > img{display:block;margin-inline:auto}
+      article h1,h2,h3{line-height:1.25}
+      header{padding:1.5rem;border-bottom:1px solid #eee}
+      nav a{margin-right:1rem;text-decoration:none}
+    </style>
   </head>
-  <body style="font-family:system-ui;line-height:1.6;margin:0;">
-    <header style="padding:1.5rem;border-bottom:1px solid #eee;">
-      <nav style="display:flex;gap:1rem;">
-        <a href="/" style="font-weight:700;text-decoration:none;">Home</a>
-        <a href="/posts" style="text-decoration:none;">Posts</a>
+  <body>
+    <header>
+      <nav>
+        <a href="/" style="font-weight:700;">Home</a>
+        <a href="/posts">Posts</a>
       </nav>
     </header>
-    <main style="max-width:860px;margin:2rem auto;padding:0 1rem;">
+    <main>
       <article>
-        <h1 style="margin-bottom:0.5rem;">{frontmatter.title}</h1>
+        <h1 style="margin-bottom:.5rem;">{frontmatter.title}</h1>
         {frontmatter.featured_image && (
           <p style="text-align:center;">
             <img
-              src={typeof frontmatter.featured_image === 'string' ? frontmatter.featured_image : frontmatter.featured_image.src}
+              src={typeof frontmatter.featured_image === 'string'
+                     ? frontmatter.featured_image
+                     : frontmatter.featured_image.src}
               alt={frontmatter.title}
-              style="max-width:100%;height:auto;"
             />
           </p>
         )}
