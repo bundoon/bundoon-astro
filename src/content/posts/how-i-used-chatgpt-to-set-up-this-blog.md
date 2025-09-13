@@ -3,7 +3,7 @@ title: How I Used ChatGPT to Set Up This Blog
 date: 2025-09-11T00:00:00.000Z
 publishDate: 2025-09-11T00:00:00.000Z
 draft: false
-description: 'My first post: setting up the blog with ChatGPT, and what I’ll share next.'
+description: "My first post: setting up the blog with ChatGPT, and what I’ll share next."
 featured_image: /images/My_1st_post_interests.png
 images:
   - /images/My_1st_post_interests.png
@@ -11,15 +11,13 @@ thumbnail: /images/My_1st_post_interests.png
 tags:
   - blog
   - setup
-  - hugo
+  - astro
   - chatgpt
 ---
 
 # My First Blog Post: How I Used ChatGPT to Set Up This Blog
 
-<p align="center">
-  <img src="/images/My_1st_post_interests.png" alt="DIY / brewing / tech / home automation / beekeeping vibe" width="900">
-</p>
+![](/images/My_1st_post_interests.png)
 
 Well, here it is—my very first blog post!
 
@@ -54,4 +52,4 @@ If you’ve stumbled across this site—thanks for stopping by. Hopefully you’
 
 Until then, here’s to starting something new.
 
-— Peter.
+— Peter
