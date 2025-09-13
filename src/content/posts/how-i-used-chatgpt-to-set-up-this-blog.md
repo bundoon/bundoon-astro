@@ -3,7 +3,6 @@ title: How I Used ChatGPT to Set Up This Blog
 date: 2025-09-11T00:00:00.000Z
 publishDate: 2025-09-11T00:00:00.000Z
 draft: false
-type: posts
 description: 'My first post: setting up the blog with ChatGPT, and what I’ll share next.'
 featured_image: /images/My_1st_post_interests.png
 images:
