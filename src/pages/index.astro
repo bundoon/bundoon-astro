@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+const posts = await getCollection('posts');
+const sorted = posts
+  .filter(p => !p.data.draft)
+  .sort((a,b) => +new Date(b.data.date) - +new Date(a.data.date));
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Peter’s Blog</title>
+    <link rel="stylesheet" href="/css/custom.css" />
+  </head>
+  <body style="font-family:system-ui;line-height:1.6;margin:0;">
+    <header style="padding:1.5rem;border-bottom:1px solid #eee;">
+      <strong>Peter’s Blog</strong>
+    </header>
+    <main style="max-width:860px;margin:2rem auto;padding:0 1rem;">
+      <h1>Latest Posts</h1>
+      <ul style="list-style:none;padding:0;margin:0;">
+        {sorted.map(({ slug, data }) => (
+          <li style="padding:1rem 0;border-bottom:1px solid #eee;">
+            <a href={`/posts/${slug}`} style="font-weight:700;text-decoration:none;">{data.title}</a>
+            {data.description && <p style="margin:0.3rem 0 0;">{data.description}</p>}
+            <small>{new Date(data.date).toLocaleDateString()}</small>
+          </li>
+        ))}
+      </ul>
+    </main>
+  </body>
+</html>
