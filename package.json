@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "astro": "^4.10.0",
+    "gray-matter": "^4.0.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {

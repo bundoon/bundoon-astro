@@ -1,0 +1,38 @@
+/* ---------- HOME PAGE HERO BANNER ONLY ---------- */
+.home .cover {
+  background-image: url("/images/Blog_hobby_banner_resized.png") !important;
+
+  /* Full-width fit */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;     /* fills edge-to-edge */
+
+  /* Give the banner height */
+  min-height: 400px;
+}
+
+/* Larger screens = a bit more height */
+@media (min-width: 900px) {
+  .home .cover {
+    min-height: 500px;
+  }
+}
+
+/* Keep overlay subtle so banner is visible */
+.home .cover .bg-black,
+.home .cover .bg-black-50,
+.home .cover .bg-black-60,
+.home .cover .bg-black-70,
+.home .cover .bg-black-80,
+.home .cover .bg-black-90 {
+  background-color: rgba(0,0,0,0.35) !important;
+}
+
+/* Hide duplicate titles/text from overlay area */
+.home .cover .site-title,
+.home .cover .page-title,
+.home .cover .f1,
+.home .cover .measure-wide {
+  display: none !important;
+}
+
