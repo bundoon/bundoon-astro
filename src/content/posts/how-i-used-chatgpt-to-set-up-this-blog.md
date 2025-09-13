@@ -5,19 +5,12 @@ publishDate: 2025-09-11T00:00:00.000Z
 draft: false
 description: "My first post: setting up the blog with ChatGPT, and what I’ll share next."
 featured_image: /images/My_1st_post_interests.png
-images:
-  - /images/My_1st_post_interests.png
-thumbnail: /images/My_1st_post_interests.png
 tags:
   - blog
   - setup
   - astro
   - chatgpt
 ---
-
-# My First Blog Post: How I Used ChatGPT to Set Up This Blog
-
-![](/images/My_1st_post_interests.png)
 
 Well, here it is—my very first blog post!
 
