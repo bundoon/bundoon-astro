@@ -3,6 +3,14 @@ import type { CollectionEntry } from 'astro:content';
 const { frontmatter } = Astro.props as {
   frontmatter: CollectionEntry<'posts'>['data'];
 };
+
+// Accept multiple possible keys from migrated content
+const hero =
+  (frontmatter as any).featured_image ??
+  (frontmatter as any).featuredImage ??
+  (frontmatter as any).image ??
+  (frontmatter as any).thumbnail ??
+  null;
 ---
 <html lang="en">
   <head>
@@ -10,16 +18,15 @@ const { frontmatter } = Astro.props as {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{frontmatter.title}</title>
     <meta name="description" content={frontmatter.description || ''} />
-    <link rel="stylesheet" href="/css/custom.css" />
     <style>
-      /* Nice defaults for post content */
-      main{max-width:860px;margin:2rem auto;padding:0 1rem;font-family:system-ui;line-height:1.6}
+      main{max-width:860px;margin:2rem auto;padding:0 1rem;font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial;line-height:1.65}
       article img{max-width:100%;height:auto}
-      /* Center any paragraph-only images */
-      article p > img{display:block;margin-inline:auto}
+      article p>img{display:block;margin-inline:auto}
       article h1,h2,h3{line-height:1.25}
       header{padding:1.5rem;border-bottom:1px solid #eee}
       nav a{margin-right:1rem;text-decoration:none}
+      figure{margin:0 0 1.25rem}
+      figcaption{font-size:.9rem;color:#666;text-align:center;margin-top:.25rem}
     </style>
   </head>
   <body>
@@ -32,16 +39,17 @@ const { frontmatter } = Astro.props as {
     <main>
       <article>
         <h1 style="margin-bottom:.5rem;">{frontmatter.title}</h1>
-        {frontmatter.featured_image && (
-          <p style="text-align:center;">
+
+        {hero && (
+          <figure>
             <img
-              src={typeof frontmatter.featured_image === 'string'
-                     ? frontmatter.featured_image
-                     : frontmatter.featured_image.src}
+              src={typeof hero === 'string' ? hero : (hero as any).src}
               alt={frontmatter.title}
             />
-          </p>
+            {frontmatter.title && <figcaption>{frontmatter.title}</figcaption>}
+          </figure>
         )}
+
         <slot />
       </article>
     </main>
