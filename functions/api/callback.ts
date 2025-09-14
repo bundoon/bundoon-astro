@@ -1,4 +1,3 @@
-
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   try {
     const url = new URL(request.url);
@@ -47,18 +46,19 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
           }
         } catch (e) {}
 
-        // 2) Also try parent (just in case we’re framed)
+        // 2) Also try parent (if framed)
         try {
           if (window.parent && window.parent !== window) {
             window.parent.postMessage(msg, "*");
           }
         } catch (e) {}
 
-        // 3) Belt + suspenders: write BOTH storage keys
-        try { localStorage.setItem("decap-cms-oauth",  msg); } catch (e) {}
-        try { localStorage.setItem("netlify-cms-auth", msg); } catch (e) {}
+        // 3) Fallback: store token where Decap expects it
+        try { localStorage.setItem("netlify-cms-oauth", msg); } catch (e) {}
+        // Optional extra fallback (harmless):
+        try { localStorage.setItem("decap-cms-oauth", msg); } catch (e) {}
 
-        // 4) Last resort: send the user to /admin so the app can read storage
+        // 4) Redirect back to the admin (it will read localStorage)
         try { window.location.replace("/admin/#/"); } catch (e) {}
       })();
     </script>
