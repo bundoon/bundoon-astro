@@ -7,7 +7,7 @@ export const onRequestGet: PagesFunction<{
     const code = url.searchParams.get('code');
     if (!code) throw new Error('Missing code');
 
-    // Exchange code for access token
+    // Exchange code for an access token
     const resp = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
       headers: {
@@ -26,46 +26,50 @@ export const onRequestGet: PagesFunction<{
       throw new Error(data.error_description || 'No access_token from GitHub');
     }
 
-    // The format Decap listens for:
-    // 'authorization:github:success:{"token":"..."}'
+    // Exact message format Decap expects
     const msg =
       'authorization:github:success:' +
       JSON.stringify({ token: data.access_token });
 
     const html = `<!doctype html>
-<html><head><meta charset="utf-8"/></head>
+<html><head><meta charset="utf-8" />
+<style>
+  body{font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:20px;color:#111}
+  .muted{color:#666}
+</style></head>
 <body>
-<script>
-(function () {
-  var msg = ${JSON.stringify(msg)};
+  <div>Completing login… <span class="muted">(you can close this window if it doesn’t close automatically)</span></div>
+  <script>
+    (function () {
+      var msg = ${JSON.stringify(msg)};
 
-  // Try postMessage to the opener (Decap listens for this)
-  try {
-    if (window.opener && !window.opener.closed) {
-      // Use opener's origin when possible; fall back to *
-      var target = (function(){
-        try { return window.opener.location.origin || '*'; }
-        catch (e) { return '*'; }
-      })();
-      window.opener.postMessage(msg, target);
-    }
-  } catch (e) { /* ignore */ }
+      function tryPost(target) {
+        try { window.opener && window.opener.postMessage(msg, target); } catch(e){}
+      }
 
-  // Minimal UI + clipboard fallback so the user can paste if needed
-  try {
-    navigator.clipboard && navigator.clipboard.writeText(msg);
-  } catch (e) {}
+      // Be permissive to avoid target origin mismatches
+      tryPost('*');
 
-  // Close fast, but give the browser a moment
-  setTimeout(function(){ window.close(); }, 300);
-})();
-</script>
+      // Best-effort clipboard fallback
+      try {
+        if (navigator.clipboard) navigator.clipboard.writeText(msg);
+      } catch (e) {}
 
-<noscript>
-  Completing login…<br/>
-  Copy this line and paste it into the CMS if needed:<br/>
-  <pre>${msg.replace(/</g,'&lt;')}</pre>
-</noscript>
+      // As a last resort, write the line so it can be copied manually
+      try {
+        var pre = document.createElement('pre');
+        pre.textContent = msg;
+        pre.style.whiteSpace = 'pre-wrap';
+        pre.style.marginTop = '12px';
+        pre.style.color = '#666';
+        pre.title = 'If the CMS did not log you in, copy this entire line and paste it into the admin console using window.postMessage(...)';
+        document.body.appendChild(pre);
+      } catch (e) {}
+
+      // Close soon (give the browser a moment)
+      setTimeout(function(){ try { window.close(); } catch(e) {} }, 400);
+    })();
+  </script>
 </body></html>`;
 
     return new Response(html, {
