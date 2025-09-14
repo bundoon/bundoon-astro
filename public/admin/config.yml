@@ -3,7 +3,6 @@ backend:
   repo: bundoon/bundoon-astro
   branch: main
   base_url: /
-  
   auth_endpoint: /api/auth
 
 media_folder: "public/images/uploads"
