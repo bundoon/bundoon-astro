@@ -1,10 +1,27 @@
 <!doctype html>
-<meta charset="utf-8" />
-<title>Content Manager</title>
-<meta name="robots" content="noindex" />
-<script>window.CMS_MANUAL_INIT = true;</script>
-<script src="https://unpkg.com/decap-cms@3.8.3/dist/decap-cms.js"
-        onload="CMS.init({ config: { load_config_file: true, config_path: '/admin/config.yml' } });">
-</script>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Content Manager</title>
+    <meta name="robots" content="noindex" />
+    <!-- Tell Decap we will init it manually -->
+    <script>window.CMS_MANUAL_INIT = true;</script>
 
+    <!-- Load Decap CMS -->
+    <script src="https://unpkg.com/decap-cms@3.8.3/dist/decap-cms.js"></script>
 
+    <!-- Init AFTER the script has loaded -->
+    <script>
+      // Log the loaded config so we can see what's going on
+      CMS.on('configLoaded', (cfg) => {
+        console.log('CONFIG:', cfg.toJS());
+      });
+
+      // Initialize Decap and point at your config file
+      CMS.init({
+        config: { load_config_file: true, config_path: '/admin/config.yml' }
+      });
+    </script>
+  </head>
+  <body></body>
+</html>
