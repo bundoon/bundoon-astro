@@ -1,62 +1,38 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Content Manager</title>
-    <meta name="robots" content="noindex" />
-  </head>
-  <body>
-    <!-- Load Decap -->
-    <script>window.CMS_MANUAL_INIT = true;</script>
-    <script src="https://unpkg.com/decap-cms@3.8.3/dist/decap-cms.js"></script>
+<script>
+  window.CMS_MANUAL_INIT = true;
 
-    <!-- Hard-coded config (no YAML, no path issues) -->
-    <script>
-      CMS.init({
-        config: {
-          load_config_file: false, // IMPORTANT: ignore /admin/config.yml entirely
-          backend: {
-            name: "github",
-            repo: "bundoon/bundoon-astro",
-            branch: "main",
-            base_url: "https://petersblog.bundoon.org",   // your site
-            auth_endpoint: "/api/auth"                     // your Worker
-          },
-          media_folder: "public/images/uploads",
-          public_folder: "/images/uploads",
-          collections: [
-            {
-              name: "posts",
-              label: "Posts",
-              folder: "src/content/posts",
-              create: true,
-              slug: "{{slug}}",
-              extension: "md",
-              fields: [
-                { label: "Title", name: "title", widget: "string" },
-                { label: "Description", name: "description", widget: "text", required: false },
-                { label: "Date", name: "date", widget: "datetime" },
-                { label: "Publish Date", name: "publishDate", widget: "datetime", required: false },
-                { label: "Draft", name: "draft", widget: "boolean", required: false },
-                { label: "Tags", name: "tags", widget: "list", required: false },
-                { label: "Featured Image", name: "featured_image", widget: "image", required: false },
-                { label: "Body", name: "body", widget: "markdown" }
-              ]
-            }
+  CMS.init({
+    config: {
+      backend: {
+        name: "github",
+        repo: "bundoon/bundoon-astro",
+        branch: "main",
+        base_url: "https://petersblog.bundoon.org",
+        auth_endpoint: "/api/auth"
+      },
+      media_folder: "public/images/uploads",
+      public_folder: "/images/uploads",
+      collections: [
+        {
+          name: "posts",
+          label: "Posts",
+          folder: "src/content/posts",
+          create: true,
+          slug: "{{slug}}",
+          extension: "md",
+          fields: [
+            { label: "Title", name: "title", widget: "string" },
+            { label: "Description", name: "description", widget: "text", required: false },
+            { label: "Date", name: "date", widget: "datetime" },
+            { label: "Publish Date", name: "publishDate", widget: "datetime", required: false },
+            { label: "Draft", name: "draft", widget: "boolean", required: false },
+            { label: "Tags", name: "tags", widget: "list", required: false },
+            { label: "Featured Image", name: "featured_image", widget: "image", required: false },
+            { label: "Body", name: "body", widget: "markdown" }
           ]
         }
-      });
+      ]
+    }
+  });
+</script>
 
-      // Optional: log what Decap actually loaded
-      window.CMS?.on?.('configLoaded', (cfg) => {
-        try {
-          console.log('CONFIG LOADED (backend):',
-            cfg.getIn(['backend','name']),
-            cfg.getIn(['backend','base_url']),
-            cfg.getIn(['backend','auth_endpoint'])
-          );
-        } catch (e) {}
-      });
-    </script>
-  </body>
-</html>
