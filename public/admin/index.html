@@ -4,24 +4,19 @@
     <meta charset="utf-8" />
     <meta name="robots" content="noindex" />
     <title>Content Manager</title>
-    <script>
-      // If a previous login stashed the token, simulate the message Decap expects.
-      (function () {
-        try {
-          var k1 = localStorage.getItem("netlify-cms-oauth");
-          var k2 = localStorage.getItem("decap-cms-oauth");
-          var msg = k1 || k2;
-          if (msg && typeof msg === "string" && msg.startsWith("authorization:github:success:")) {
-            // Re-emit to the app and then clean up
-            window.postMessage(msg, "*");
-            localStorage.removeItem("netlify-cms-oauth");
-            localStorage.removeItem("decap-cms-oauth");
-          }
-        } catch (e) {}
-      })();
-    </script>
   </head>
   <body>
+    <script>
+      window.addEventListener('message', function (e) {
+        try {
+          if (typeof e.data === 'string' && e.data.indexOf('authorization:github:') === 0) {
+            localStorage.setItem('decap-cms-oauth',  e.data);
+            localStorage.setItem('netlify-cms-auth', e.data);
+            setTimeout(function(){ location.reload(); }, 30);
+          }
+        } catch(_) {}
+      });
+    </script>
     <script defer src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   </body>
 </html>
