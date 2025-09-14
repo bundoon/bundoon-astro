@@ -2,7 +2,8 @@ backend:
   name: github
   repo: bundoon/bundoon-astro
   branch: main
-  base_url: https://petersblog.bundoon.org
+  base_url: /
+  
   auth_endpoint: /api/auth
 
 media_folder: "public/images/uploads"
