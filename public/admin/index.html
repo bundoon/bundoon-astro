@@ -2,21 +2,15 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="robots" content="noindex" />
     <title>Content Manager</title>
+    <meta name="robots" content="noindex" />
   </head>
   <body>
+    <script>window.CMS_MANUAL_INIT = true;</script>
+    <script src="https://unpkg.com/decap-cms@^3.8.3/dist/decap-cms.js"></script>
     <script>
-      window.addEventListener('message', function (e) {
-        try {
-          if (typeof e.data === 'string' && e.data.indexOf('authorization:github:') === 0) {
-            localStorage.setItem('decap-cms-oauth',  e.data);
-            localStorage.setItem('netlify-cms-auth', e.data);
-            setTimeout(function(){ location.reload(); }, 30);
-          }
-        } catch(_) {}
-      });
+      // Force the exact config path
+      CMS.init({ config: { load_config_file: true, config_path: '/admin/config.yml' } });
     </script>
-    <script defer src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   </body>
 </html>
