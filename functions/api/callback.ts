@@ -1,3 +1,4 @@
+
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   try {
     const url = new URL(request.url);
@@ -30,6 +31,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
     const html = `<!doctype html>
 <html>
+  <meta charset="utf-8" />
   <body style="font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
     <div>Completing login… (you can close this window if it doesn’t close automatically)</div>
     <pre style="white-space:pre-wrap;word-break:break-word">${msg.replaceAll("<","&lt;")}</pre>
@@ -37,28 +39,33 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       (function () {
         var msg = ${JSON.stringify(msg)};
 
-        // Try to deliver to the opener quickly (Decap listens for postMessage)
-        var tries = 0, max = 30; // ~6s
-        function ping() {
-          try {
-            if (window.opener && !window.opener.closed) {
-              window.opener.postMessage(msg, "*");
-            }
-          } catch (e) {}
-          if (++tries < max) return setTimeout(ping, 200);
+        // 1) Try the opener (normal popup flow)
+        try {
+          if (window.opener && !window.opener.closed) {
+            window.opener.postMessage(msg, "*");
+            setTimeout(function(){ try{ window.close(); }catch(e){} }, 60);
+          }
+        } catch (e) {}
 
-          // Fallback: write BOTH legacy and new storage keys
-          try { localStorage.setItem("netlify-cms-oauth", msg); } catch (e) {}
-          try { localStorage.setItem("decap-cms-oauth", msg); } catch (e) {}
+        // 2) Also try parent (just in case we’re framed)
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage(msg, "*");
+          }
+        } catch (e) {}
 
-          // Last resort: nudge the admin to reload and consume storage
-          try { window.location.replace("/admin/#/"); } catch (e) {}
-        }
-        ping();
+        // 3) Belt + suspenders: write BOTH storage keys
+        try { localStorage.setItem("decap-cms-oauth",  msg); } catch (e) {}
+        try { localStorage.setItem("netlify-cms-auth", msg); } catch (e) {}
+
+        // 4) Last resort: send the user to /admin so the app can read storage
+        try { window.location.replace("/admin/#/"); } catch (e) {}
       })();
     </script>
+    <noscript>JavaScript is required to finish logging in.</noscript>
   </body>
 </html>`;
+
     return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
   } catch (err: any) {
     return new Response(
