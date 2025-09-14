@@ -6,29 +6,57 @@
     <title>Content Manager</title>
   </head>
   <body>
-    <!-- Forward token if the popup used the localStorage fallback -->
+    <!-- Forward OAuth token to Decap; retry so we win any race -->
     <script>
       (function () {
-        try {
-          var KEY = 'decap-cms-oauth';
-          var msg = localStorage.getItem(KEY);
-          if (msg) {
-            window.postMessage(msg, '*');
-            localStorage.removeItem(KEY);
-          }
-        } catch (e) {}
-      })();
+        var KEY = 'decap-cms-oauth';
 
-      // Optional: ensure the GitHub login opens as a popup window
-      // (Decap renders the button; this just turns /api/auth links into popups)
-      window.addEventListener('DOMContentLoaded', function () {
-        document.body.addEventListener('click', function (e) {
-          var a = e.target && e.target.closest && e.target.closest('a[href="/api/auth"]');
-          if (!a) return;
-          e.preventDefault();
-          window.open(a.href, 'oauth', 'width=600,height=700,noopener');
+        function readToken() {
+          try { return localStorage.getItem(KEY); } catch (e) { return null; }
+        }
+        function clearToken() {
+          try { localStorage.removeItem(KEY); } catch (e) {}
+        }
+        function send(msg) {
+          try { window.postMessage(msg, '*'); } catch (e) {}
+        }
+
+        // 1) If the token is already there, start a short resend loop
+        function resendLoop() {
+          var msg = readToken();
+          if (!msg) return;
+          var tries = 0, max = 30; // ~6s at 200ms
+          var t = setInterval(function () {
+            tries++;
+            send(msg);
+            if (tries >= max) {
+              clearInterval(t);
+              clearToken();
+            }
+          }, 200);
+        }
+
+        // 2) Also catch tokens added later (e.g., popup redirect placed it)
+        window.addEventListener('storage', function (e) {
+          if (e.key === KEY && e.newValue) {
+            resendLoop();
+          }
         });
-      });
+
+        // Kick it off ASAP and again after load
+        resendLoop();
+        window.addEventListener('load', resendLoop);
+
+        // Optional: ensure /api/auth opens as a popup
+        window.addEventListener('DOMContentLoaded', function () {
+          document.body.addEventListener('click', function (e) {
+            var a = e.target && e.target.closest && e.target.closest('a[href="/api/auth"]');
+            if (!a) return;
+            e.preventDefault();
+            window.open(a.href, 'oauth', 'width=600,height=700,noopener');
+          });
+        });
+      })();
     </script>
 
     <!-- Decap CMS -->
