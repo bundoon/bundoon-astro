@@ -1,86 +1,97 @@
-export const onRequestGet: PagesFunction<{
-  GITHUB_CLIENT_ID: string
-  GITHUB_CLIENT_SECRET: string
-}> = async ({ request, env }) => {
+// functions/api/callback.ts
+export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   try {
     const url = new URL(request.url);
-    const code = url.searchParams.get('code');
-    if (!code) throw new Error('Missing code');
+    const code = url.searchParams.get("code");
+    if (!code) throw new Error("Missing code");
 
-    // Exchange code for an access token
-    const resp = await fetch('https://github.com/login/oauth/access_token', {
-      method: 'POST',
+    // Exchange code for access_token
+    const resp = await fetch("https://github.com/login/oauth/access_token", {
+      method: "POST",
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "User-Agent": "decap-cms-oauth",
       },
       body: JSON.stringify({
         client_id: env.GITHUB_CLIENT_ID,
         client_secret: env.GITHUB_CLIENT_SECRET,
         code,
+        // redirect_uri is optional but harmless:
+        redirect_uri: `${new URL("/", request.url).origin}/api/callback`,
       }),
     });
 
     const data = await resp.json();
     if (!data.access_token) {
-      throw new Error(data.error_description || 'No access_token from GitHub');
+      throw new Error(data.error_description || "No access_token from GitHub");
     }
 
-    // Exact message format Decap expects
+    // This is the exact format Decap/Netlify CMS listens for
     const msg =
-      'authorization:github:success:' +
+      "authorization:github:success:" +
       JSON.stringify({ token: data.access_token });
 
+    // A tiny HTML page that tries several handoff methods
     const html = `<!doctype html>
-<html><head><meta charset="utf-8" />
-<style>
-  body{font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:20px;color:#111}
-  .muted{color:#666}
-</style></head>
-<body>
-  <div>Completing login… <span class="muted">(you can close this window if it doesn’t close automatically)</span></div>
-  <script>
-    (function () {
-      var msg = ${JSON.stringify(msg)};
+<html>
+  <body style="font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+    <div>Completing login… (you can close this window if it doesn’t close automatically)</div>
+    <pre style="white-space:pre-wrap;word-break:break-word">${msg.replaceAll(
+      "<",
+      "&lt;"
+    )}</pre>
 
-      function tryPost(target) {
-        try { window.opener && window.opener.postMessage(msg, target); } catch(e){}
-      }
+    <script>
+      (function () {
+        var msg = ${JSON.stringify(msg)};
 
-      // Be permissive to avoid target origin mismatches
-      tryPost('*');
+        // 1) Preferred: send to the window that opened the popup
+        try {
+          if (window.opener && !window.opener.closed) {
+            window.opener.postMessage(msg, "*");
+            // Give the opener a tick to receive the message
+            setTimeout(function () {
+              try { window.close(); } catch (e) {}
+            }, 50);
+            return;
+          }
+        } catch (e) {}
 
-      // Best-effort clipboard fallback
-      try {
-        if (navigator.clipboard) navigator.clipboard.writeText(msg);
-      } catch (e) {}
+        // 2) Fallback: try parent (in case we’re in an iframe)
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage(msg, "*");
+          }
+        } catch (e) {}
 
-      // As a last resort, write the line so it can be copied manually
-      try {
-        var pre = document.createElement('pre');
-        pre.textContent = msg;
-        pre.style.whiteSpace = 'pre-wrap';
-        pre.style.marginTop = '12px';
-        pre.style.color = '#666';
-        pre.title = 'If the CMS did not log you in, copy this entire line and paste it into the admin console using window.postMessage(...)';
-        document.body.appendChild(pre);
-      } catch (e) {}
+        // 3) Fallback: stash for the admin app to pick up on load
+        try {
+          localStorage.setItem("decap-cms-oauth", msg);
+        } catch (e) {}
 
-      // Close soon (give the browser a moment)
-      setTimeout(function(){ try { window.close(); } catch(e) {} }, 400);
-    })();
-  </script>
-</body></html>`;
+        // 4) Redirect the popup back to the admin; the app will read storage
+        try {
+          window.location.replace("/admin/#/");
+        } catch (e) {}
+      })();
+    </script>
+
+    <noscript>
+      JavaScript is required to finish logging in. Please enable it and retry.
+    </noscript>
+  </body>
+</html>`;
 
     return new Response(html, {
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      headers: { "Content-Type": "text/html; charset=utf-8" },
     });
   } catch (err: any) {
-    const errorMsg =
-      'authorization:github:error:' +
-      JSON.stringify({ error: err?.message || 'OAuth failed' });
-    const html = `<!doctype html><meta charset="utf-8">
-<pre>${errorMsg.replace(/</g,'&lt;')}</pre>`;
-    return new Response(html, { headers: { 'Content-Type': 'text/html' } });
+    return new Response(
+      "authorization:github:error:" +
+        JSON.stringify({ error: err?.message || "OAuth failed" }),
+      { headers: { "Content-Type": "text/plain; charset=utf-8" }, status: 400 }
+    );
   }
 };
+
