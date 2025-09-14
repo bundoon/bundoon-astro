@@ -3,7 +3,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const url = new URL(request.url);
 
   // Where GitHub should send the browser back to after login:
-  const redirectUri = `${url.origin}/api/callback`;
+  const redirectUri = "https://petersblog.bundoon.org/api/callback";
 
   // Decap may pass scope (e.g. "repo"); default to repo + email
   const scope = url.searchParams.get('scope') || 'repo,user:email';
