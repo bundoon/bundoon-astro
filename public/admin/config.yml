@@ -3,7 +3,7 @@ backend:
   repo: bundoon/bundoon-astro
   branch: main
   base_url: https://petersblog.bundoon.org
-  auth_endpoint: /api/auth
+  auth_endpoint: /api/callback
 
 media_folder: "public/images/uploads"
 public_folder: "/images/uploads"
