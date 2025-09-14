@@ -1,27 +1,59 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Content Manager</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <meta name="robots" content="noindex" />
-    <!-- Tell Decap we will init it manually -->
+    <title>Content Manager</title>
+
+    <!-- Tell Decap we will call CMS.init() ourselves -->
     <script>window.CMS_MANUAL_INIT = true;</script>
 
-    <!-- Load Decap CMS -->
-    <script src="https://unpkg.com/decap-cms@3.8.3/dist/decap-cms.js"></script>
+    <!-- Decap CMS (bundles app + core) -->
+    <script
+      src="https://unpkg.com/decap-cms@^3.8.3/dist/decap-cms.js"
+      defer
+    ></script>
 
-    <!-- Init AFTER the script has loaded -->
     <script>
-      // Log the loaded config so we can see what's going on
-      CMS.on('configLoaded', (cfg) => {
-        console.log('CONFIG:', cfg.toJS());
-      });
+      // Start Decap once the script has loaded
+      window.addEventListener('load', function () {
+        if (!window.CMS || typeof CMS.init !== 'function') {
+          console.error('Decap CMS failed to load (CMS.init not found).');
+          return;
+        }
 
-      // Initialize Decap and point at your config file
-      CMS.init({
-        config: { load_config_file: true, config_path: '/admin/config.yml' }
+        // Point to your config.yml and allow Decap to load it
+        CMS.init({
+          load_config_file: true,
+          config_path: '/admin/config.yml'
+        });
+
+        // Optional: quick sanity log you can remove later
+        try {
+          const cfg = CMS.getConfig && CMS.getConfig();
+          if (cfg && cfg.toJS) {
+            const j = cfg.toJS();
+            console.log('Decap config (snippet):', {
+              backend: j.backend,
+              media_folder: j.media_folder,
+              public_folder: j.public_folder
+            });
+          }
+        } catch (e) {
+          // fine if not available yet
+        }
       });
     </script>
+
+    <style>
+      /* just a soft background while the app boots */
+      html, body { height: 100%; margin: 0; }
+      body { background:#f6f7fb; }
+    </style>
   </head>
   <body></body>
 </html>
