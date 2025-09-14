@@ -1,61 +1,47 @@
+// /functions/api/callback.js
 export const onRequestGet = async ({ request, env }) => {
+  const url = new URL(request.url);
+  const code = url.searchParams.get('code');
+
+  const html = (script) => `<!doctype html><html><body>
+  <p style="font:14px system-ui">Completing login…</p>
+  <script>${script}</script>
+  </body></html>`;
+
   try {
-    const url = new URL(request.url);
-    const code = url.searchParams.get('code');
     if (!code) throw new Error('Missing code');
 
-    const resp = await fetch('https://github.com/login/oauth/access_token', {
+    const res = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         client_id: env.GITHUB_CLIENT_ID,
         client_secret: env.GITHUB_CLIENT_SECRET,
-        code,
-      }),
+        code
+      })
     });
+    const data = await res.json();
+    if (!data.access_token) throw new Error(data.error_description || 'No token');
 
-    const data = await resp.json();
-    if (!data.access_token) {
-      throw new Error(data.error_description || 'No access_token from GitHub');
-    }
-
-    const html = `<!doctype html>
-<html><body>
-<script>
-  (function () {
-    var msg = 'authorization:github:success:' + JSON.stringify({ token: '${data.access_token}' });
-    // Tell the window that opened this popup
-    if (window.opener) {
-      window.opener.postMessage(msg, '*');
-      window.close();
-    } else {
-      // Fallback: show token so you can copy it (shouldn't happen in normal flow)
-      document.write('<pre>' + msg + '</pre>');
-    }
-  })();
-</script>
-</body></html>`;
-    return new Response(html, { headers: { 'Content-Type': 'text/html' } });
-  } catch (err) {
-    const html = `<!doctype html>
-<html><body>
-<script>
-  (function () {
-    var msg = 'authorization:github:error:' + JSON.stringify({ error: ${JSON.stringify(
-      { message: 'OAuth failed' }
-    )}.message });
-    if (window.opener) {
-      window.opener.postMessage(msg, '*');
-      window.close();
-    } else {
-      document.write('<pre>' + msg + '</pre>');
-    }
-  })();
-</script>
-</body></html>`;
-    return new Response(html, { headers: { 'Content-Type': 'text/html' } });
+    const script = `
+      (function () {
+        var msg = 'authorization:github:success:' + JSON.stringify({ token: '${data.access_token}' });
+        try { if (window.opener) window.opener.postMessage(msg, '*'); } catch (e) {}
+        setTimeout(function(){ window.close(); }, 500);
+        document.body.insertAdjacentHTML('beforeend','<pre>'+msg+'</pre>');
+      })();
+    `;
+    return new Response(html(script), { headers: { 'Content-Type': 'text/html' } });
+  } catch (e) {
+    const script = `
+      (function () {
+        var msg = 'authorization:github:error:' + JSON.stringify({ error: '${(e && e.message) || 'OAuth failed'}' });
+        try { if (window.opener) window.opener.postMessage(msg, '*'); } catch (e) {}
+        document.body.insertAdjacentHTML('beforeend','<pre>'+msg+'</pre>');
+        setTimeout(function(){ window.close(); }, 1500);
+      })();
+    `;
+    return new Response(html(script), { headers: { 'Content-Type': 'text/html' } });
   }
 };
+
